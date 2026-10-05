@@ -1,0 +1,115 @@
+{
+  "model": "TF-IDF + Logistic Regression (Baseline)",
+  "macro_f1": 0.8387,
+  "weighted_f1": 0.8469,
+  "accuracy": 0.8438,
+  "classes": [
+    "age",
+    "ethnicity",
+    "gender",
+    "not_cyberbullying",
+    "other_cyberbullying",
+    "religion"
+  ],
+  "confusion_matrix": [
+    [
+      779,
+      2,
+      0,
+      9,
+      9,
+      1
+    ],
+    [
+      2,
+      763,
+      4,
+      7,
+      20,
+      0
+    ],
+    [
+      3,
+      1,
+      676,
+      52,
+      54,
+      3
+    ],
+    [
+      19,
+      3,
+      29,
+      487,
+      234,
+      21
+    ],
+    [
+      4,
+      2,
+      23,
+      156,
+      434,
+      5
+    ],
+    [
+      1,
+      1,
+      0,
+      40,
+      14,
+      744
+    ]
+  ],
+  "classification_report": {
+    "age": {
+      "precision": 0.9641089108910891,
+      "recall": 0.97375,
+      "f1-score": 0.9689054726368159,
+      "support": 800.0
+    },
+    "ethnicity": {
+      "precision": 0.9883419689119171,
+      "recall": 0.9585427135678392,
+      "f1-score": 0.9732142857142857,
+      "support": 796.0
+    },
+    "gender": {
+      "precision": 0.9234972677595629,
+      "recall": 0.8567807351077313,
+      "f1-score": 0.8888888888888888,
+      "support": 789.0
+    },
+    "not_cyberbullying": {
+      "precision": 0.6484687083888149,
+      "recall": 0.6141235813366961,
+      "f1-score": 0.6308290155440415,
+      "support": 793.0
+    },
+    "other_cyberbullying": {
+      "precision": 0.5673202614379085,
+      "recall": 0.6955128205128205,
+      "f1-score": 0.624910007199424,
+      "support": 624.0
+    },
+    "religion": {
+      "precision": 0.9612403100775194,
+      "recall": 0.93,
+      "f1-score": 0.9453621346886912,
+      "support": 800.0
+    },
+    "accuracy": 0.8437635810517167,
+    "macro avg": {
+      "precision": 0.842162904577802,
+      "recall": 0.8381183084208478,
+      "f1-score": 0.8386849674453579,
+      "support": 4602.0
+    },
+    "weighted avg": {
+      "precision": 0.8526472092961,
+      "recall": 0.8437635810517167,
+      "f1-score": 0.8469398618950837,
+      "support": 4602.0
+    }
+  }
+}

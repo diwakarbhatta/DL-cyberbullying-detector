@@ -1,0 +1,7 @@
+,Pred_age,Pred_ethnicity,Pred_gender,Pred_not_cyberbullying,Pred_other_cyberbullying,Pred_religion
+Actual_age,779,2,0,9,9,1
+Actual_ethnicity,2,763,4,7,20,0
+Actual_gender,3,1,676,52,54,3
+Actual_not_cyberbullying,19,3,29,487,234,21
+Actual_other_cyberbullying,4,2,23,156,434,5
+Actual_religion,1,1,0,40,14,744
