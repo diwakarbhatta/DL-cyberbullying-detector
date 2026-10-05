@@ -4,7 +4,6 @@ Streamlit Web Application for Cyberbullying & Toxic Comment Detection
 
 import streamlit as st
 import pandas as pd
-import numpy as np
 import time
 from src.model import ToxicityDetector, CATEGORY_METADATA
 from src.samples import SAMPLE_COMMENTS
@@ -125,37 +124,63 @@ def main():
     with tab1:
         st.markdown("#### Paste or select a comment to analyze:")
 
-        # Quick preset selection
+        # Quick preset selection (with a Clear button in the spare column)
         col_presets, col_clear = st.columns([4, 1])
         preset_names = ["-- Select a Sample Preset --"] + [f"[{s['category']}] {s['comment'][:60]}..." for s in SAMPLE_COMMENTS]
-        selected_preset = col_presets.selectbox("Load Benchmark Sample", preset_names, index=0)
+
+        if col_clear.button("Clear", use_container_width=True):
+            st.session_state["preset_select"] = preset_names[0]
+            st.session_state.pop("comment_input", None)
+
+        selected_preset = col_presets.selectbox(
+            "Load Benchmark Sample", preset_names, index=0, key="preset_select"
+        )
 
         initial_text = ""
         if selected_preset != "-- Select a Sample Preset --":
             preset_idx = preset_names.index(selected_preset) - 1
             initial_text = SAMPLE_COMMENTS[preset_idx]["comment"]
 
-        # Text input
+        # Text input.  Keyed so "Clear" can reset it; whenever the preset
+        # selection changes we sync the widget state to the new default
+        # (Streamlit keeps its own stored value for keyed widgets and would
+        # otherwise ignore `value`).
+        if st.session_state.get("last_preset") != selected_preset:
+            st.session_state["comment_input"] = initial_text
+            st.session_state["last_preset"] = selected_preset
+
         user_input = st.text_area(
             "Comment Text",
-            value=initial_text,
             height=120,
+            key="comment_input",
             placeholder="Type or paste any online comment, tweet, or message here..."
         )
 
         analyze_button = st.button("🚀 Analyze Toxicity", type="primary", use_container_width=True)
 
-        if analyze_button or (user_input and initial_text):
+        if analyze_button:
             if not user_input.strip():
                 st.warning("Please enter some text before analyzing.")
             else:
                 with st.spinner("Analyzing text across toxicity categories..."):
-                    start_t = time.time()
+                    start_t = time.perf_counter()
                     res = detector.predict(user_input, threshold=threshold, highlight_tokens=True)
-                    latency = (time.time() - start_t) * 1000
+                    latency_ms = (time.perf_counter() - start_t) * 1000.0
 
-                st.markdown("---")
-                st.subheader("📊 Analysis Results")
+                # Persist the last result so it stays visible after the next
+                # rerun (e.g. when the user tweaks the threshold slider).
+                st.session_state["single_result"] = {
+                    "res": res,
+                    "latency_ms": latency_ms,
+                }
+
+        displayed = st.session_state.get("single_result")
+        if displayed is not None:
+            res = displayed["res"]
+            latency_ms = displayed["latency_ms"]
+
+            st.markdown("---")
+            st.subheader("📊 Analysis Results")
 
                 # High-level Verdict Row
                 v_col1, v_col2, v_col3 = st.columns([2, 1, 1])
@@ -169,7 +194,7 @@ def main():
                     st.metric("Primary Confidence", f"{res['overall_score'] * 100:.1f}%")
 
                 with v_col3:
-                    st.metric("Inference Latency", f"{latency:.0f} ms")
+                    st.metric("Inference Latency", f"{latency_ms:.0f} ms")
 
                 st.markdown(f"**Severity Grade:** `{res['severity_level']}`")
 
