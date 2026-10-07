@@ -17,7 +17,7 @@ if hasattr(sys.stderr, "reconfigure"):
 from src.model import ToxicityDetector, CATEGORY_METADATA
 from src.samples import SAMPLE_COMMENTS
 
-def print_result(res):
+def print_result(res, threshold: float = 0.50):
     print("\n" + "=" * 60)
     print(f"Comment: \"{res['original_text']}\"")
     print("-" * 60)
@@ -28,7 +28,8 @@ def print_result(res):
     print("Category Breakdown:")
     for cat, score in res["scores"].items():
         meta = CATEGORY_METADATA.get(cat, {})
-        flag = " [FLAGGED]" if score >= 0.50 else ""
+        # Respect the user-supplied --threshold instead of a hardcoded 0.50.
+        flag = " [FLAGGED]" if score >= threshold else ""
         bar = "█" * int(score * 20)
         print(f"  {meta.get('icon', '•')} {meta.get('label', cat):<24} {score*100:5.1f}%  {bar:<20}{flag}")
     
@@ -53,10 +54,10 @@ def main():
         print("Running benchmark samples...")
         for sample in SAMPLE_COMMENTS:
             res = detector.predict(sample["comment"], threshold=args.threshold)
-            print_result(res)
+            print_result(res, args.threshold)
     elif args.text:
         res = detector.predict(args.text, threshold=args.threshold)
-        print_result(res)
+        print_result(res, args.threshold)
     else:
         # Interactive prompt
         print("Enter a comment to evaluate (or 'quit' / 'exit' to stop):")
@@ -68,7 +69,7 @@ def main():
                 if not user_input.strip():
                     continue
                 res = detector.predict(user_input, threshold=args.threshold)
-                print_result(res)
+                print_result(res, args.threshold)
             except (KeyboardInterrupt, EOFError):
                 break
 

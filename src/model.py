@@ -3,7 +3,6 @@ Deep Learning Toxicity and Cyberbullying Classifier
 Powered by Hugging Face Transformers (unitary/toxic-bert)
 """
 
-import os
 import torch
 import numpy as np
 from typing import Dict, List, Any, Optional
@@ -113,6 +112,8 @@ class ToxicityDetector:
             }
 
         cleaned = clean_text(text)
+        # clean_text already lowercases and decodes word-level leetspeak;
+        # normalize_leetspeak is idempotent, kept for non-lowercase inputs.
         normalized = normalize_leetspeak(cleaned)
 
         inputs = self.tokenizer(
@@ -130,16 +131,23 @@ class ToxicityDetector:
             probs = torch.sigmoid(logits).cpu().numpy()[0]
 
         scores = {self.labels[i]: float(probs[i]) for i in range(len(self.labels))}
-        
-        # Primary category is the highest scoring label
-        sorted_cats = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-        top_category, top_score = sorted_cats[0]
-        
+
         # Check flagged categories based on threshold
         flagged = [cat for cat, s in scores.items() if s >= threshold]
-        is_toxic = len(flagged) > 0 or top_score >= threshold
+        is_toxic = len(flagged) > 0
 
-        primary_category = CATEGORY_METADATA.get(top_category, {}).get("label", top_category) if is_toxic else "Clean"
+        # Primary category: highest-scoring *flagged* label when toxic
+        # (falling back to the global argmax otherwise).  Using the raw
+        # argmax previously reported labels like "Obscenity" as the primary
+        # category even for completely clean comments.
+        if is_toxic:
+            top_category = max(flagged, key=lambda c: scores[c])
+            top_score = scores[top_category]
+            primary_category = CATEGORY_METADATA.get(top_category, {}).get("label", top_category)
+        else:
+            top_category, top_score = max(scores.items(), key=lambda x: x[1])
+            primary_category = "Clean"
+
         severity = self._determine_severity(scores, is_toxic)
 
         # Highlight important toxic spans if comment is flagged
